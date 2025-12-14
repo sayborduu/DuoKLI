@@ -26,8 +26,8 @@ Ensure you have the following programs installed:
 ## Usage
 - To navigate around the CLI, press the corresponding key on your keyboard that's next to the option you want to select.
 - When launching the script for the first time, you'll need to add an account through the account manager menu to start using DuoKLI.
-  - Press `9` to go into the account manager menu, then `A` to add an account.
-  - Paste in your account's JWT token and hit Enter.
+  - Press `9` to go into the account manager menu, then `L` to log in to your Duolingo account.
+  - Enter your account credentials (email/username and password).
   - Once completed, press `0` to go back to the account selection menu, and select your account (in this case, press `1`).
 
 ## FAQ
