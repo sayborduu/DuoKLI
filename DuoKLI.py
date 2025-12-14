@@ -6,7 +6,6 @@ from tzlocal import get_localzone
 from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear,
                    fetch_username_and_id, farm_progress, warn_request_count, ratelimited_warning, login_password)
 
-# TODO: Add guardrails to amount in fast gems
 # TODO: Port some functions from [my private project] to here
 # TODO: Add questsaver function to the saver script
 # TODO: Implement multi-threading and proxies
@@ -33,11 +32,28 @@ def title_string() -> str:
 def start_task(type: str, account: int, request_amount: bool = True) -> bool:
     if request_amount:
         try:
-            amount = int(inp(f" Enter amount of {type}", ["0 to endlessly farm"]))
+            amount = int(inp(f" Enter amount of {type}", ["0 to farm endlessly"]))
         except ValueError:
             return False
 
     if type.lower() in ['gems', 'fast gems']:
+        # Due to how the fast gems function works,
+        #   the length of the `futures` list is equal to `amount` divided by 30.
+        # Therefore, entering a huge number will result in the list becoming so big,
+        #   that the system will most likely run out of RAM,
+        #   crashing DuoKLI and possibly other running programs.
+        # We don't want to risk that happening, so we add a hard-coded limit to prevent it.
+        #
+        # FYI, 5 million fast gems -> ~400 MB of RAM used by the `futures` list
+        if amount >= 5_000_000 and type.lower() == 'fast gems':
+            print(
+                "\n [bright_red]Amount of fast gems is too high!"
+                "\n Please enter a number under 5,000,000 or enter 0 to farm endlessly.[/]"
+            )
+            print("\n [bright_yellow]Press any key to continue.[/]")
+            getch()
+            return False
+
         if amount == 0:
             if not warn_request_count(0):
                 return False
@@ -822,14 +838,14 @@ try:
             with open("config.json", "w") as f:
                 json.dump(config, f, indent=4)
             _print("\033[?25h", end="")
-            sys.exit()
+            sys.exit(0)
 
 except KeyboardInterrupt:
     print("\n\n  [bright_red]Exiting program...[/]")
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
     _print("\033[?25h", end="")
-    sys.exit()
+    sys.exit(0)
 
 except Exception as e:
     print(f"[red][bold]An unexpected error occurred: {e}[/]\nDetailed error:[/]")
@@ -838,4 +854,4 @@ except Exception as e:
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
     _print("\033[?25h", end="")
-    sys.exit()
+    sys.exit(1)
