@@ -6,6 +6,7 @@ from tzlocal import get_localzone
 from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear,
                    fetch_username_and_id, farm_progress, warn_request_count, ratelimited_warning, login_password)
 
+# TODO: Add guardrails to amount in fast gems
 # TODO: Port some functions from [my private project] to here
 # TODO: Add questsaver function to the saver script
 # TODO: Implement multi-threading and proxies
@@ -16,8 +17,10 @@ from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_
 # TODO: Fix DuoKLI crashing when trying to farm on the newly added account right after adding it
 # TODO: Implement "Check for updates" setting that will check the GitHub repo for updates, automatically update DuoKLI if an update is found
 # TODO: Write debug info into a log file
+# TODO: Add mouse support
+# TODO: Create a simple logging class to decrease clutter in the code by debug prints and such
 
-VERSION = "v1.2.0"
+VERSION = "v1.3.0"
 TIMEZONE = str(get_localzone())
 
 with open("config.json", "r") as f:
@@ -30,7 +33,7 @@ def title_string() -> str:
 def start_task(type: str, account: int, request_amount: bool = True) -> bool:
     if request_amount:
         try:
-            amount = int(inp(f" Enter amount of {type}"))
+            amount = int(inp(f" Enter amount of {type}", ["0 to endlessly farm"]))
         except ValueError:
             return False
 
@@ -511,7 +514,7 @@ try:
                             title_string(),
                             f"\n  [bright_magenta]Accounts:[/]",
                             *[f"  {i+1}: {acc['username']}" for i, acc in enumerate(config['accounts'])],
-                            f"\n  [bright_green]A. Add Account[/]",
+                            f"\n  [bright_green]A. Add Account with Token[/]",
                             f"  [bright_green]L. Login with Password[/]",
                             f"  [bright_yellow]Select an account to edit it.[/]",
                             f"\n  [bright_red]0. Go Back[/]\n"
@@ -595,7 +598,7 @@ try:
                             getch()
                         elif acc_manager_option == "L":
                             try:
-                                identifier = inp(" Enter your account identifier (email, username or phone number)")
+                                identifier = inp(" Enter your email, username or phone number")
                             except ValueError:
                                 continue
                             if not identifier:
@@ -629,7 +632,7 @@ try:
                             print(f" [bright_green]Successfully added account {new_account['username']}![/]")
                             print(" [bright_yellow]Press any key to continue.[/]")
                             getch()
-                            
+
                     break
                 elif account == 0:
                     print("\n  [bright_red]Exiting program...[/]")

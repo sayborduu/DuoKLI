@@ -47,9 +47,10 @@ def getch() -> str:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
-def inp(s, password: bool = False) -> str:
+def inp(s: str, ss: list[str] = [], password: bool = False) -> str:
+    ss = ", ".join(["Esc to cancel", *ss])
     _print("\033[?25h", end="")
-    print(f"{s} [bright_black][Esc to cancel][/]: ", end="")
+    print(f"{s} [bright_black][{ss}][/]: ", end="")
     r = []
     while True:
         c = getch()
@@ -84,7 +85,7 @@ def get_headers(account: int = None, token: str = None, user_id: int = None) -> 
         token = config['accounts'][account]['token']
         user_id = config['accounts'][account]['id']
     return {
-        "accept": "application/json", 
+        "accept": "application/json",
         "authorization": f"Bearer {token}",
         "connection": "Keep-Alive",
         "content-type": "application/json",
@@ -106,7 +107,7 @@ def randomize_mobile_user_agent() -> str:
         'Pixel 6',
         'Pixel 6 Pro',
         'Pixel 7',
-        'Pixel 7 Pro', 
+        'Pixel 7 Pro',
         'Pixel 8',
         'SM-A536B',
         'SM-S918B',
@@ -150,7 +151,7 @@ def ratelimited_warning():
     except KeyboardInterrupt:
         pass
 
-def get_duo_info(account: int, debug: bool = False):
+def get_duo_info(account: int, debug: bool = False) -> dict | None:
     url = f"https://www.duolingo.com/2017-06-30/users/{config['accounts'][account]['id']}"
     headers = get_headers(account)
 
@@ -162,7 +163,7 @@ def get_duo_info(account: int, debug: bool = False):
     elif response.status_code == 403:
         if debug:
             print(f"{current_time()} [bold magenta][DEBUG][/] Rate limited when retrieving Duolingo info for user {config['accounts'][account]['username']}")
-        
+
         ratelimited_warning()
 
         return None
@@ -175,7 +176,7 @@ def get_duo_info(account: int, debug: bool = False):
             )
         return None
 
-def fetch_username_and_id(token: str, debug: bool = False) -> dict[str, int | str]:
+def fetch_username_and_id(token: str, debug: bool = False) -> dict[str, int | str, str] | str:
     token = token.strip().replace(" ", "").replace("'", "").replace("\"", "")
 
     if not re.match(r'^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$', token):
@@ -203,7 +204,7 @@ def fetch_username_and_id(token: str, debug: bool = False) -> dict[str, int | st
 
     return {"username": username, "id": user_id}
 
-def login_password(identifier: str, password: str, debug: bool = False) -> dict[str, int | str, str] | None:
+def login_password(identifier: str, password: str, debug: bool = False) -> dict[str, int | str, str] | str | None:
     url = "https://ios-api-cf.duolingo.com/2023-05-23/login"
     headers = {
         "accept": "application/json",
@@ -212,14 +213,14 @@ def login_password(identifier: str, password: str, debug: bool = False) -> dict[
         "user-agent": "DuolingoMobile/7.101.1 (iPhone; iOS 26.1; Scale/2.00)",
         "x-amzn-trace-id": "User=0",
     }
-    
+
     data = {
         "identifier": identifier,
         "password": password,
         "distinctId": str(uuid.uuid4()).upper(),
         "fields": "id,username"
     }
-    
+
     response = requests.post(url, headers=headers, json=data)
 
     if response.status_code != 200:
@@ -238,6 +239,6 @@ def login_password(identifier: str, password: str, debug: bool = False) -> dict[
         jwt_token = response.cookies.get('jwt_token')
     except requests.cookies.CookieConflictError:
         jwt_token = response.headers.get('jwt')
-    
+
     if jwt_token:
         return {"username": username, "id": user_id, "token": jwt_token}
