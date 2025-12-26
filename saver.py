@@ -127,7 +127,7 @@ def leaderboard_registration(account):
 def save_streak(account):
     if DEBUG:
         print(f"{current_time()} [bold magenta][DEBUG][/] Checking streak for {config['accounts'][account]['username']}")
-    duo_info = get_duo_info(account, True)
+    duo_info = get_duo_info(account, DEBUG)
     headers = get_headers(account)
     user_tz = pytz.timezone(TIMEZONE)
     now = datetime.now(user_tz)
