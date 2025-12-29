@@ -1,11 +1,11 @@
-import json, pytz, sys, traceback, time, requests
+import json, pytz, sys, traceback, time, requests, random
 _print = print
 from rich import print
 from tzlocal import get_localzone
-from datetime import datetime
+from datetime import datetime, timezone
 from utils import get_duo_info, get_headers, clear, current_time
 
-VERSION = "v0.1.1 Beta"
+VERSION = "v0.1.2 Beta"
 TIMEZONE = str(get_localzone())
 
 with open("config.json", "r") as f:
@@ -18,10 +18,24 @@ def farm_xp(account, amount):
     if DEBUG:
         print(f"{current_time()} [bold magenta][DEBUG][/] Starting to farm {amount} XP for {config['accounts'][account]['username']}")
         original_amount = amount
-    headers = get_headers(account)
+    token = config['accounts'][account]['token']
+    headers = {
+        "authorization": f"Bearer {token}",
+        "cookie": f"jwt_token={token}",
+        "connection": "Keep-Alive",
+        "content-type": "application/json",
+        "user-agent": "DuoKLI/1.0",
+        "device-platform": "web",
+        "x-duolingo-device-platform": "web",
+        "x-duolingo-app-version": "1.0.0",
+        "x-duolingo-application": "chrome",
+        "x-duolingo-client-version": "web",
+        "accept": "application/json"
+    }
 
     while True:
-        now = datetime.now(pytz.timezone(TIMEZONE))
+        now_ts = int(datetime.now(timezone.utc).timestamp())
+        duration = random.randint(300, 420)
         base_xp = 30
         max_happy_hour = 469
         happy_hour_bonus = min(max_happy_hour, amount - base_xp) if amount > base_xp else 0
@@ -40,8 +54,8 @@ def farm_xp(account, amount):
             "maxScore": 0,
             "score": 0,
             "happyHourBonusXp": happy_hour_bonus,
-            "startTime": now.timestamp(),
-            "endTime": datetime.now(pytz.timezone(TIMEZONE)).timestamp(),
+            "startTime": now_ts,
+            "endTime": now_ts + duration,
         }
         response = requests.post('https://stories.duolingo.com/api2/stories/fr-en-le-passeport/complete', headers=headers, json=dataget, timeout=10)
         if response.status_code == 200:
