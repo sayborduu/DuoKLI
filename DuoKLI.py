@@ -3,8 +3,8 @@ _print = print
 from rich import print
 from datetime import datetime, timedelta
 from tzlocal import get_localzone
-from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear,
-                   fetch_username_and_id, farm_progress, warn_request_count, ratelimited_warning, login_password)
+from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear, fetch_username_and_id,
+                   farm_progress, warn_request_count, ratelimited_warning, login_password, update_utils_config)
 
 # TODO: Port some functions from [my private project] to here
 # TODO: Add questsaver function to the saver script
@@ -13,13 +13,12 @@ from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_
 # TODO: Add more items to the items menu
 # TODO: Auto login to the preferred account
 # TODO: Add Verbose Mode in addition to Debug Mode
-# TODO: Fix DuoKLI crashing when trying to farm on the newly added account right after adding it
 # TODO: Implement "Check for updates" setting that will check the GitHub repo for updates, automatically update DuoKLI if an update is found
 # TODO: Write debug info into a log file
 # TODO: Add mouse support
 # TODO: Create a simple logging class to decrease clutter in the code by debug prints and such
 
-VERSION = "v1.3.0"
+VERSION = "v1.3.1"
 TIMEZONE = str(get_localzone())
 
 with open("config.json", "r") as f:
@@ -571,19 +570,23 @@ try:
                                 config['accounts'][acc_to_update]['username'] = new_account['username']
                                 config['accounts'][acc_to_update]['id'] = new_account['id']
                                 config['accounts'][acc_to_update]['token'] = new_token
+                                update_utils_config(config)
                                 print(f" [bright_green]Successfully updated account {new_account['username']}![/]")
                                 print(" [bright_yellow]Press any key to continue.[/]")
                                 getch()
                             elif acc_manager_option == "J":
                                 if acc_to_update != len(config['accounts'])-1:
                                     config['accounts'][acc_to_update], config['accounts'][acc_to_update+1] = config['accounts'][acc_to_update+1], config['accounts'][acc_to_update]
+                                    update_utils_config(config)
                             elif acc_manager_option == "K":
                                 if acc_to_update != 0:
                                     config['accounts'][acc_to_update], config['accounts'][acc_to_update-1] = config['accounts'][acc_to_update-1], config['accounts'][acc_to_update]
+                                    update_utils_config(config)
                             elif acc_manager_option == "R":
                                 print(f"\n [bright_red]Are you sure you want to remove {config['accounts'][acc_to_update]['username']}? \\[y/N][/]")
-                                if getch().upper() in ["Y", "\r"]:
+                                if getch().upper() == "Y":
                                     config['accounts'].pop(acc_to_update)
+                                    update_utils_config(config)
                         elif acc_manager_option == "A":
                             try:
                                 new_token = inp(" Enter your account's token")
@@ -609,6 +612,7 @@ try:
                                     "position": None
                                 }
                             })
+                            update_utils_config(config)
                             print(f" [bright_green]Successfully added account {new_account['username']}![/]")
                             print(" [bright_yellow]Press any key to continue.[/]")
                             getch()
@@ -645,6 +649,7 @@ try:
                                     "position": None
                                 }
                             })
+                            update_utils_config(config)
                             print(f" [bright_green]Successfully added account {new_account['username']}![/]")
                             print(" [bright_yellow]Press any key to continue.[/]")
                             getch()

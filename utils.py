@@ -34,6 +34,9 @@ def time_taken(t: int | float) -> str:
 def fint(n: int | float) -> str:
     return f"{n:,}" if n != 0 else "inf"
 
+def update_utils_config(new_config: dict):
+    globals()['config'] = new_config
+
 def getch() -> str:
     if os.name == "nt":
         ch = msvcrt.getch().decode("utf-8")
