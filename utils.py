@@ -245,3 +245,34 @@ def login_password(identifier: str, password: str, debug: bool = False) -> dict[
 
     if jwt_token:
         return {"username": username, "id": user_id, "token": jwt_token}
+
+class Menu:
+    def __init__(self, title):
+        self.title = title
+
+    def print_and_getch(self, *lines: tuple[str, str, str] | str) -> str:
+        keys = [x[1] for x in lines if type(x) is tuple]
+
+        menu_list = []
+        for l in lines:
+            if type(l) is tuple:
+                menu_list.append(f"  [{l[0]}]{l[1]}. {l[2]}[/]")
+            else:
+                menu_list.append(l)
+
+        menu_list = [self.title(), *menu_list]
+        opt_types = ["header", *[type(x) for x in lines]]
+
+        clear()
+        for s in menu_list:
+            print(s)
+
+        opt = ""
+        while opt not in keys:
+            opt = getch().upper()
+
+        clear()
+        for s, opt_type in zip(menu_list, opt_types):
+            print(s if opt_type == "header" else f"[bold]{s}[/]" if f"{opt}. " in s else re.sub(r"\[.*?\]", "[bright_black]", s, count=1))
+
+        return opt
