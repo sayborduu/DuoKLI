@@ -33,8 +33,6 @@ Ensure you have the following programs installed:
 ## FAQ
 - Q: Pip is giving me an error: `ERROR: Could not open the requirements file`. \
   A: Ensure you opened the terminal in the extracted folder where DuoKLI's files are.
-- Q: DuoKLI crashed when I tried to start a farm after adding my account. \
-  A: This is a known bug. Simply reopen DuoKLI and start the farm again.
 - Q: I'm getting the error "There are no accounts with a saver feature enabled!" in the saver. \
   A: Go back into the main menu, open `Settings`, then `Saver Settings`, and enable at least one saver feature.
 
