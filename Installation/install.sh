@@ -5,16 +5,6 @@ GITHUB_REPO=""
 DEFAULT_PREFIX="/usr/local/lib/duokli"
 DOWNLOAD_DIR=""
 BIN_DIR="/usr/local/bin"
-DEFAULT_BIN_PATH="${BIN_DIR}/duokli"
-ARCHIVE=""
-EXTRACTED_DIR=""
-
-cleanup() {
-  [[ -n "${ARCHIVE}" && -f "${ARCHIVE}" ]] && rm -f "${ARCHIVE}"
-  [[ -n "${EXTRACTED_DIR}" && -d "${EXTRACTED_DIR}" ]] && rm -rf "${EXTRACTED_DIR}"
-}
-
-trap cleanup EXIT
 
 usage() {
   cat <<EOF
@@ -58,7 +48,6 @@ check_cmd python3
 PREFIX="${DEFAULT_PREFIX}"
 TAG=""
 UNINSTALL=0
-BIN_PATH="${DEFAULT_BIN_PATH}"
 
 while [[ ${#} -gt 0 ]]; do
   case "$1" in
@@ -78,6 +67,8 @@ while [[ ${#} -gt 0 ]]; do
       echo "Unknown arg: $1"; usage; exit 1;;
   esac
 done
+
+BIN_PATH="${BIN_DIR}/duokli"
 
 if [[ ${UNINSTALL} -eq 1 ]]; then
   info "Uninstalling"
@@ -115,11 +106,7 @@ curl -sSL --fail -o "${ARCHIVE}" "${TARBALL_URL}" || die "download failed"
 info "Extracting"
 tar -xzf "${ARCHIVE}" -C "${TMPDIR}" || die "extract failed"
 
-set +o pipefail
-ROOT_DIR_NAME=$(tar -tzf "${ARCHIVE}" | head -n1 | cut -d/ -f1 || true)
-set -o pipefail
-[[ -n "${ROOT_DIR_NAME}" ]] || die "cannot determine root directory in archive"
-EXTRACTED_DIR="${TMPDIR}/${ROOT_DIR_NAME}"
+EXTRACTED_DIR=$(find "${TMPDIR}" -mindepth 1 -maxdepth 1 -type d | head -n1)
 [[ -d "${EXTRACTED_DIR}" ]] || die "extracted directory not found"
 
 TARGET_DIR="${PREFIX}-${TAG}"
@@ -129,7 +116,6 @@ info "Installing to ${TARGET_DIR}"
 
 sudo mkdir -p "$(dirname "${TARGET_DIR}")"
 sudo mv "${EXTRACTED_DIR}" "${TARGET_DIR}" || die "failed to move files into ${TARGET_DIR}"
-EXTRACTED_DIR=""
 
 info "Linking"
 sudo ln -sfn "${TARGET_DIR}" "${PREFIX}"
@@ -147,29 +133,17 @@ else
   note "No requirements.txt"
 fi
 
-if [[ -t 0 ]]; then
-  read -r -p "Create launcher 'duokli'? [Y/n] " CREATE_LINK
-  CREATE_LINK=${CREATE_LINK:-Y}
-else
-  note "Non-interactive install; creating launcher at ${BIN_PATH}"
-  CREATE_LINK="Y"
-fi
-
-if [[ "${CREATE_LINK}" =~ ^[Yy] ]]; then
-  info "Creating wrapper ${BIN_PATH}"
-  WRAPPER_CONTENT=$(cat <<EOF
+info "Creating wrapper ${BIN_PATH}"
+WRAPPER_CONTENT=$(cat <<EOF
 #!/usr/bin/env bash
 exec "${TARGET_DIR}/venv/bin/python" "${PREFIX}/DuoKLI.py" "\$@"
 EOF
 )
-  echo "${WRAPPER_CONTENT}" | sudo tee "${BIN_PATH}" >/dev/null
-  sudo chmod +x "${BIN_PATH}"
-else
-  note "Skipping launcher creation"
-fi
+echo "${WRAPPER_CONTENT}" | sudo tee "${BIN_PATH}" >/dev/null
+sudo chmod +x "${BIN_PATH}"
 
 info "Done"
 note "Launch with: duokli"
-[[ "${CREATE_LINK}" =~ ^[Yy] ]] && note "Wrapper at ${BIN_PATH}"
+note "Wrapper at ${BIN_PATH}"
 note "Prefix at ${PREFIX}"
 exit 0

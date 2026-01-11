@@ -1,5 +1,6 @@
 import sys, os, requests, zipfile, tempfile, shutil
 import re
+import json
 from pathlib import Path
 import version
 
@@ -31,6 +32,9 @@ def parse_version(v: str):
 
 def is_newer(latest: str):
     return parse_version(latest) > parse_version(version.__version__)
+
+def is_pre_release(v: str):
+    return parse_version(version.__version__) > parse_version(v)
 
 def get_latest_release():
     r = requests.get(version.GITHUB_API, timeout=10)
@@ -77,12 +81,47 @@ def stage_update(extract_dir: Path, tag: str):
     else:
         shutil.move(str(extract_dir), str(target))
 
-def check_and_stage_update(apply: bool = False):
+def check_and_stage_update(apply: bool = False, printing: bool = True, ask: bool = False, cfg: dict = None, debug: bool = False, autoupdating: bool = False):
+    def print(*args, **kwargs):
+        if printing:
+            __builtins__.print(*args, **kwargs)
     try:
         release = get_latest_release()
         latest = release["tag_name"]
 
+        skip_versions = []
+        skip_versions = cfg.get("skip_versions", [])
+        
         if is_newer(latest):
+            if autoupdating and latest in skip_versions:
+                print(f"Skipping version {latest} (marked to skip in config).")
+                return
+
+            response = "y"
+            if ask:
+                response = input(f"A new version {latest} is available. Do you want to update now? (y/n/(s)kip): ").strip().lower()
+            if response.startswith("s"):
+                target_cfg = cfg
+                if target_cfg is None:
+                    try:
+                        with open(APP_DIR / "config.json", "r") as f:
+                            target_cfg = json.load(f)
+                    except Exception:
+                        target_cfg = None
+
+                if isinstance(target_cfg, dict):
+                    target_cfg.setdefault("skip_versions", [])
+                    if latest not in target_cfg["skip_versions"]:
+                        target_cfg["skip_versions"].append(latest)
+                        try:
+                            with open(APP_DIR / "config.json", "w") as f:
+                                json.dump(target_cfg, f, indent=4)
+                        except Exception:
+                            pass
+                print(f"Skipped version {latest}.")
+                return
+            if response != 'y':
+                return
             print(f"DuoKLI update available: {latest}")
             url = release["zipball_url"]
             extract_dir = download_release(url)

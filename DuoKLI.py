@@ -27,6 +27,8 @@ TIMEZONE = str(get_localzone())
 with open("config.json", "r") as f:
     config: dict = json.load(f)
 
+AUTOUPDATE = config.get('autoupdate', False)
+ASK_AUTOUPDATE = config.get('ask_autoupdate', True)
 DEBUG = config['debug']
 def title_string() -> str:
     return f'\n   [bold][bright_green]Duo[/][bright_blue]KLI[/] [white]{VERSION}[/]{" [magenta][Debug Mode Enabled][/]" if DEBUG else ""}[/]'
@@ -510,10 +512,21 @@ def give_item(account, item):
             f"{current_time()} [bold magenta][DEBUG][/] Content: {response.text}"
         )
 
+# MARK: Program starts here
 # Program starts here ------------------------------------------------------------------------------------------------
 
 try:
     _print("\033[?25l")
+    if AUTOUPDATE:
+        try:
+            updater.check_and_stage_update(apply=True, printing=False, ask=ASK_AUTOUPDATE, config=config, debug=DEBUG, autoupdating=True)
+        except Exception as e:
+            if DEBUG:
+                print(
+                    f"{current_time()} [bold magenta][DEBUG][/] An error occurred while trying to auto-update DuoKLI: {e}\n"
+                    f"{traceback.format_exc()}"
+                )
+    
     while True:
         clear()
         print(title_string())
@@ -521,21 +534,10 @@ try:
         for i in range(len(config['accounts'])):
             print(f"  {i+1}: {config['accounts'][i]['username']}")
         print("\n  [bright_blue]9. Manage Accounts[/]")
-        print("  [bright_blue]U. Check Updates[/]")
         print("  [bright_red]0. Quit[/]")
         while True:
             try:
-                account = getch()
-                if account.lower() == "u":
-                    clear()
-                    print(title_string())
-                    print("\n  [bright_yellow]Checking for updates...[/]")
-                    updater.check_and_stage_update(apply=True)
-                    print("\n  [bright_yellow]Press any key to continue.[/]")
-                    getch()
-                    account = None
-                    break
-                account = int(account)
+                account = int(getch())
                 if account == 9:
                     while True:
                         clear()
@@ -813,14 +815,20 @@ try:
                     title_string(),
                     "\n  [bold bright_blue]Settings:[/]",
                     "  1. Saver Settings: [bold bright_yellow]Configure[/]",
-                   "  2. Debug Mode: " + ( "[bright_green]Enabled[/]" if config["debug"] else "[bright_red]Disabled[/]" ),
-
+                    "  2. Debug Mode: " + ( "[bright_green]Enabled[/]" if config["debug"] else "[bright_red]Disabled[/]" ),
+                    "",
+                    "  3. Check Updates",
+                    "  4. Auto update: " + ( "[bright_green]Enabled[/]" if AUTOUPDATE else "[bright_red]Disabled[/]" ),
                     "",
                     "  [bright_red]0. Go Back[/]\n",
                 ]
+                if AUTOUPDATE:
+                    settings_menu.insert(-2, "  5. Ask before auto-updating: " + ( "[bright_green]Enabled[/]" if ASK_AUTOUPDATE else "[bright_red]Disabled[/]" ))
+                    if not ASK_AUTOUPDATE:
+                        settings_menu.insert(-2, "  ⚠️ [bright_yellow] Updates are still experimental and may cause issues. Keeping this enabled is recommended.\n  Report any issues through GitHub or Discord.[/]")
                 for string in settings_menu:
                     print(string)
-                while setting_option not in ['1', '2', '0']:
+                while setting_option not in ['1', '2', '3', '4', '0'] + (['5'] if AUTOUPDATE else []):
                     setting_option = getch()
                 clear()
                 for string in settings_menu:
@@ -876,6 +884,19 @@ try:
                             config['accounts'][int(saver_row_option)-1]['autoleague']['position'] = amount if amount >= 1 and amount <= 30 else None
                 elif setting_option == "2":
                     DEBUG = config['debug'] = not config['debug']
+                elif setting_option == "3":
+                    clear()
+                    print(title_string())
+                    print("\n  [bright_yellow]Checking for updates...[/]")
+                    updater.check_and_stage_update(apply=True)
+                    print("\n  [bright_yellow]Press any key to continue.[/]")
+                    getch()
+                    account = None
+                    break 
+                elif setting_option == "4":
+                    AUTOUPDATE = config['autoupdate'] = not config.get('autoupdate', False)
+                elif setting_option == "5":
+                    ASK_AUTOUPDATE = config['ask_autoupdate'] = not config.get('ask_autoupdate', True)
                 elif setting_option == "0":
                     with open("config.json", "w") as f:
                         json.dump(config, f, indent=4)
