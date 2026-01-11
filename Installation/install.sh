@@ -135,34 +135,26 @@ else
   note "No requirements.txt"
 fi
 
-  if [[ -t 0 ]]; then
-    read -r -p "Create launcher 'duokli'? [Y/n] " CREATE_LINK
-    CREATE_LINK=${CREATE_LINK:-Y}
-    if [[ "${CREATE_LINK}" =~ ^[Yy] ]]; then
-      read -r -p "Use default launcher path (${BIN_PATH})? [Y/n] " USE_DEFAULT_PATH
-      USE_DEFAULT_PATH=${USE_DEFAULT_PATH:-Y}
-      if [[ ! "${USE_DEFAULT_PATH}" =~ ^[Yy] ]]; then
-        read -r -p "Enter launcher path (e.g., /usr/local/bin/duokli): " CUSTOM_BIN_PATH
-        BIN_PATH=${CUSTOM_BIN_PATH:-${BIN_PATH}}
-      fi
-    else
-      note "Skipping launcher creation"
-    fi
-  else
-    note "Non-interactive install; creating launcher at ${BIN_PATH}"
-    CREATE_LINK="Y"
-  fi
+if [[ -t 0 ]]; then
+  read -r -p "Create launcher 'duokli'? [Y/n] " CREATE_LINK
+  CREATE_LINK=${CREATE_LINK:-Y}
+else
+  note "Non-interactive install; creating launcher at ${BIN_PATH}"
+  CREATE_LINK="Y"
+fi
 
-  if [[ "${CREATE_LINK}" =~ ^[Yy] ]]; then
-    info "Creating wrapper ${BIN_PATH}"
-    WRAPPER_CONTENT=$(cat <<EOF
-  #!/usr/bin/env bash
-  exec "${TARGET_DIR}/venv/bin/python" "${PREFIX}/DuoKLI.py" "\$@"
-  EOF
-    )
-    echo "${WRAPPER_CONTENT}" | sudo tee "${BIN_PATH}" >/dev/null
-    sudo chmod +x "${BIN_PATH}"
-  fi
+if [[ "${CREATE_LINK}" =~ ^[Yy] ]]; then
+  info "Creating wrapper ${BIN_PATH}"
+  WRAPPER_CONTENT=$(cat <<'EOF'
+#!/usr/bin/env bash
+exec "${TARGET_DIR}/venv/bin/python" "${PREFIX}/DuoKLI.py" "$@"
+EOF
+  )
+  echo "${WRAPPER_CONTENT}" | sudo tee "${BIN_PATH}" >/dev/null
+  sudo chmod +x "${BIN_PATH}"
+else
+  note "Skipping launcher creation"
+fi
 
 info "Done"
 note "Launch with: duokli"
