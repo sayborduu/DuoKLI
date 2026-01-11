@@ -24,9 +24,18 @@ Ensure you have the following programs installed:
    py DuoKLI.py
    ```
   
-### Method 2: Automatic download (currently on sayborduu's fork)
+### Method 2: Automatic download (currently on BETA)
 ```
-curl -fsSL https://raw.githubusercontent.com/sayborduu/DuoKLI/refs/heads/main/Installation/install.sh | bash -s -- --github-repo sayborduu/DuoKLI
+curl -fsSL https://raw.githubusercontent.com/SeekPlush-linux/DuoKLI/refs/heads/main/Installation/install.sh | bash -s -- --github-repo sayborduu/DuoKLI
+```
+#### Tested on:
+[x] Linux (debian 13)
+[x] macOS (Tahoe 26.2)
+[] ~~Windows~~
+
+This installation script allows you to run DuoKLI by executing this in your terminal:
+```
+$ duokli
 ```
 
 ## Usage
