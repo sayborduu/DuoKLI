@@ -25,6 +25,12 @@ Ensure you have the following programs installed:
    ```
   
 ### Method 2: Automatic download (currently on BETA)
+This installation script allows running DuoKLI by executing this in your terminal:
+```
+$ duokli
+```
+When using it, it will install DuoKLI in your current directory.
+
 ```
 curl -fsSL https://raw.githubusercontent.com/SeekPlush-linux/DuoKLI/refs/heads/main/Installation/install.sh | bash -s -- --github-repo SeekPlush-linux/DuoKLI
 ```
@@ -32,11 +38,6 @@ curl -fsSL https://raw.githubusercontent.com/SeekPlush-linux/DuoKLI/refs/heads/m
 - [x] Linux (debian 13)
 - [x] macOS (Tahoe 26.2)
 - [ ] ~~Windows~~
-
-This installation script allows running DuoKLI by executing this in your terminal:
-```
-$ duokli
-```
 
 ## Usage
 - To navigate around the CLI, press the corresponding key on your keyboard that's next to the option you want to select.
