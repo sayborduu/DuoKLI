@@ -82,7 +82,7 @@ if [[ ${UNINSTALL} -eq 1 ]]; then
   exit 0
 fi
 
-info "Fetching latest release info for ${REPO}"
+info "Fetching latest release info for ${GITHUB_REPO}"
 if [[ -z "${GITHUB_REPO}" ]]; then
   die "--github-repo is required (format: owner/repo)"
 fi
@@ -92,7 +92,7 @@ API_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
 info "Fetching latest release info for ${GITHUB_REPO}"
 if [[ -z "${TAG}" ]]; then
   RAW=$(curl -fsL "${API_URL}") || die "failed fetching release info"
-  TAG=$(printf '%s' "$RAW" | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": "([^"+]*)".*/\1/')
+  TAG=$(printf '%s' "$RAW" | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": "([^"]*)".*/\1/')
   if [[ -z "${TAG}" ]]; then
     die "could not determine latest tag"
   fi
