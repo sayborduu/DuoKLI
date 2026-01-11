@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from tzlocal import get_localzone
 from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear,
                    fetch_username_and_id, farm_progress, warn_request_count, ratelimited_warning, login_password)
+import version
 
 # TODO: Port some functions from [my private project] to here
 # TODO: Add questsaver function to the saver script
@@ -19,7 +20,7 @@ from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_
 # TODO: Add mouse support
 # TODO: Create a simple logging class to decrease clutter in the code by debug prints and such
 
-VERSION = "v1.3.0"
+VERSION = version.__version__
 TIMEZONE = str(get_localzone())
 
 with open("config.json", "r") as f:
