@@ -6,6 +6,7 @@ from tzlocal import get_localzone
 from utils import (getch, fint, inp, current_time, time_taken, get_headers, get_duo_info, clear,
                    fetch_username_and_id, farm_progress, warn_request_count, ratelimited_warning, login_password)
 import version
+import updater
 
 # TODO: Port some functions from [my private project] to here
 # TODO: Add questsaver function to the saver script
@@ -520,10 +521,21 @@ try:
         for i in range(len(config['accounts'])):
             print(f"  {i+1}: {config['accounts'][i]['username']}")
         print("\n  [bright_blue]9. Manage Accounts[/]")
+        print("  [bright_blue]U. Check Updates[/]")
         print("  [bright_red]0. Quit[/]")
         while True:
             try:
-                account = int(getch())
+                account = getch()
+                if account.lower() == "u":
+                    clear()
+                    print(title_string())
+                    print("\n  [bright_yellow]Checking for updates...[/]")
+                    updater.check_and_stage_update(apply=True)
+                    print("\n  [bright_yellow]Press any key to continue.[/]")
+                    getch()
+                    account = None
+                    break
+                account = int(account)
                 if account == 9:
                     while True:
                         clear()
@@ -661,7 +673,7 @@ try:
                 break
             except (IndexError, ValueError) as e:
                 pass
-        if account != 9:
+        if account != 9 and account is not None:
             break
 
     while True:

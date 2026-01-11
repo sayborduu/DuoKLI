@@ -1,4 +1,5 @@
-import sys, requests, zipfile, tempfile, shutil
+import sys, os, requests, zipfile, tempfile, shutil
+import re
 from pathlib import Path
 import version
 
@@ -9,7 +10,6 @@ UPDATE_DIR = version.UPDATE_DIR
 def apply_update(staged_dir: Path, target_dir: Path = APP_DIR):
     if not staged_dir.exists():
         return
-    print("Applying pending update...")
     for item in staged_dir.iterdir():
         dest = target_dir / item.name
         if dest.exists():
@@ -19,10 +19,15 @@ def apply_update(staged_dir: Path, target_dir: Path = APP_DIR):
                 dest.unlink()
         shutil.move(str(item), str(dest))
     staged_dir.rmdir()
-    print("Update applied!")
+    
 
 def parse_version(v: str):
-    return tuple(map(int, v.lstrip("v").split(".")))
+    if not v:
+        return (0,)
+    nums = re.findall(r"\d+", v)
+    if not nums:
+        return (0,)
+    return tuple(map(int, nums))
 
 def is_newer(latest: str):
     return parse_version(latest) > parse_version(version.__version__)
@@ -72,7 +77,7 @@ def stage_update(extract_dir: Path, tag: str):
     else:
         shutil.move(str(extract_dir), str(target))
 
-def check_and_stage_update():
+def check_and_stage_update(apply: bool = False):
     try:
         release = get_latest_release()
         latest = release["tag_name"]
@@ -82,8 +87,27 @@ def check_and_stage_update():
             url = release["zipball_url"]
             extract_dir = download_release(url)
             stage_update(extract_dir, latest)
-            print(f"Update staged at {UPDATE_DIR / latest.lstrip('v')}. It will be applied on next launch.")
-            sys.exit(0)
+            staged_path = UPDATE_DIR / latest.lstrip("v")
+            if apply:
+                print(f"Applying update {latest} now...")
+                try:
+                    apply_update(staged_path, APP_DIR)
+                except Exception as e:
+                    print("Failed to apply update:", e)
+                    sys.exit(1)
+
+                python = sys.executable
+                duo_script = APP_DIR / "DuoKLI.py"
+                if not duo_script.exists():
+                    print(f"Cannot restart: {duo_script} not found.")
+                    sys.exit(1)
+
+                print("Restarting DuoKLI...")
+                os.chdir(str(APP_DIR))
+                os.execv(python, [python, str(duo_script)])
+            else:
+                print(f"Update staged at {staged_path}. It will be applied on next launch.")
+                sys.exit(0)
         else:
             print("DuoKLI is up to date.")
     except Exception as e:
