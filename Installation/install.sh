@@ -115,7 +115,9 @@ curl -sSL --fail -o "${ARCHIVE}" "${TARBALL_URL}" || die "download failed"
 info "Extracting"
 tar -xzf "${ARCHIVE}" -C "${TMPDIR}" || die "extract failed"
 
-ROOT_DIR_NAME=$(tar -tzf "${ARCHIVE}" | head -n1 | cut -d/ -f1)
+set +o pipefail
+ROOT_DIR_NAME=$(tar -tzf "${ARCHIVE}" | head -n1 | cut -d/ -f1 || true)
+set -o pipefail
 [[ -n "${ROOT_DIR_NAME}" ]] || die "cannot determine root directory in archive"
 EXTRACTED_DIR="${TMPDIR}/${ROOT_DIR_NAME}"
 [[ -d "${EXTRACTED_DIR}" ]] || die "extracted directory not found"
@@ -127,6 +129,7 @@ info "Installing to ${TARGET_DIR}"
 
 sudo mkdir -p "$(dirname "${TARGET_DIR}")"
 sudo mv "${EXTRACTED_DIR}" "${TARGET_DIR}" || die "failed to move files into ${TARGET_DIR}"
+EXTRACTED_DIR=""
 
 info "Linking"
 sudo ln -sfn "${TARGET_DIR}" "${PREFIX}"
