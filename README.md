@@ -26,7 +26,7 @@ Ensure you have the following programs installed:
   
 ### Method 2: Automatic download (currently on BETA)
 ```
-curl -fsSL https://raw.githubusercontent.com/SeekPlush-linux/DuoKLI/refs/heads/main/Installation/install.sh | bash -s -- --github-repo sayborduu/DuoKLI
+curl -fsSL https://raw.githubusercontent.com/SeekPlush-linux/DuoKLI/refs/heads/main/Installation/install.sh | bash -s -- --github-repo SeekPlush-linux/DuoKLI
 ```
 #### Tested on:
 - [x] Linux (debian 13)
