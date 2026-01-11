@@ -17,15 +17,13 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt || echo "no deps"
-
       - name: Generate hashes.json
         run: |
           python scripts/gen_hashes.py
 
-      - name: Add hashes.json to release
+      - name: Upload hashes.json to existing release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: DuoKLI/hashes.json
+          artifacts: hashes.json
           tag: ${{ github.event.release.tag_name }}
+          overwrite: true
