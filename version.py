@@ -1,6 +1,6 @@
 from pathlib import Path
 
-__version__ = "v1.4.1"
+__version__ = "v1.4.3-demo"
 
 GITHUB_USER = "sayborduu"
 GITHUB_REPO = "DuoKLI"
