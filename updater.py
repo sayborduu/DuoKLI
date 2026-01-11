@@ -33,9 +33,6 @@ def parse_version(v: str):
 def is_newer(latest: str):
     return parse_version(latest) > parse_version(version.__version__)
 
-def is_pre_release(v: str):
-    return parse_version(version.__version__) > parse_version(v)
-
 def get_latest_release():
     r = requests.get(version.GITHUB_API, timeout=10)
     if r.status_code != 200:
