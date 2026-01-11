@@ -6,6 +6,15 @@ DEFAULT_PREFIX="/usr/local/lib/duokli"
 DOWNLOAD_DIR=""
 BIN_DIR="/usr/local/bin"
 DEFAULT_BIN_PATH="${BIN_DIR}/duokli"
+ARCHIVE=""
+EXTRACTED_DIR=""
+
+cleanup() {
+  [[ -n "${ARCHIVE}" && -f "${ARCHIVE}" ]] && rm -f "${ARCHIVE}"
+  [[ -n "${EXTRACTED_DIR}" && -d "${EXTRACTED_DIR}" ]] && rm -rf "${EXTRACTED_DIR}"
+}
+
+trap cleanup EXIT
 
 usage() {
   cat <<EOF
@@ -145,11 +154,11 @@ fi
 
 if [[ "${CREATE_LINK}" =~ ^[Yy] ]]; then
   info "Creating wrapper ${BIN_PATH}"
-  WRAPPER_CONTENT=$(cat <<'EOF'
+  WRAPPER_CONTENT=$(cat <<EOF
 #!/usr/bin/env bash
-exec "${TARGET_DIR}/venv/bin/python" "${PREFIX}/DuoKLI.py" "$@"
+exec "${TARGET_DIR}/venv/bin/python" "${PREFIX}/DuoKLI.py" "\$@"
 EOF
-  )
+)
   echo "${WRAPPER_CONTENT}" | sudo tee "${BIN_PATH}" >/dev/null
   sudo chmod +x "${BIN_PATH}"
 else
