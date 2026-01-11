@@ -1,0 +1,31 @@
+name: Build Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  generate_hashes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt || echo "no deps"
+
+      - name: Generate hashes.json
+        run: |
+          python scripts/gen_hashes.py
+
+      - name: Add hashes.json to release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: DuoKLI/hashes.json
+          tag: ${{ github.event.release.tag_name }}
